@@ -24,34 +24,37 @@ function listen(id, callback) {
 }
 
 function sendMsg(serverid, clientid, msg) {
-    const ipc = require('node-ipc');
-    ipc.config.id = clientid;
-    ipc.config.retry = 1000;
-    ipc.config.silent=true;
+    return new Promise((resolve) => {
+        const ipc = require('node-ipc');
+        ipc.config.id = clientid;
+        ipc.config.retry = 1000;
+        ipc.config.silent = true;
 
-    ipc.connectTo(
-        serverid,
-        function () {
-            ipc.of.serverid.on(
-                'connect',
-                function () {
-                    ipc.of.serverid.emit(
-                        'app.message',
-                        {
-                            id: ipc.config.id,
-                            message: msg
-                        }
-                    );
-                }
-            );
-            ipc.of.serverid.on(
-                'disconnect',
-                function () {
-                    ipc.disconnect(serverid);
-                }
-            );
-        }
-    );
+        ipc.connectTo(
+            serverid,
+            function () {
+                ipc.of.serverid.on(
+                    'connect',
+                    function () {
+                        ipc.of.serverid.emit(
+                            'app.message',
+                            {
+                                id: ipc.config.id,
+                                message: msg
+                            }
+                        );
+                    }
+                );
+                ipc.of.serverid.on(
+                    'disconnect',
+                    function () {
+                        ipc.disconnect(serverid);
+                        resolve();
+                    }
+                );
+            }
+        );
+    });
 }
 
 module.exports.sendMsg = sendMsg;
