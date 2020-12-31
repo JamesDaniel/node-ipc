@@ -1,6 +1,7 @@
+const importFresh = require('import-fresh');
 
 function listen(id, callback) {
-    const ipc = require('node-ipc');
+    const ipc = importFresh('node-ipc');
 
     ipc.config.id = id;
     ipc.config.retry = 1500;
@@ -25,7 +26,7 @@ function listen(id, callback) {
 
 function sendMsg(serverid, clientid, msg) {
     return new Promise((resolve) => {
-        const ipc = require('node-ipc');
+        const ipc = importFresh('node-ipc');
         ipc.config.id = clientid;
         ipc.config.retry = 1000;
         ipc.config.silent = true;
@@ -33,10 +34,10 @@ function sendMsg(serverid, clientid, msg) {
         ipc.connectTo(
             serverid,
             function () {
-                ipc.of.serverid.on(
+                ipc.of[serverid].on(
                     'connect',
                     function () {
-                        ipc.of.serverid.emit(
+                        ipc.of[serverid].emit(
                             'app.message',
                             {
                                 id: ipc.config.id,
@@ -45,7 +46,7 @@ function sendMsg(serverid, clientid, msg) {
                         );
                     }
                 );
-                ipc.of.serverid.on(
+                ipc.of[serverid].on(
                     'disconnect',
                     function () {
                         ipc.disconnect(serverid);
